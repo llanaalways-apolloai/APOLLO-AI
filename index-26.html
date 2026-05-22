@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Apollo AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0a0a0f;
+      color: #e8e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== CSS VARIABLES ===== */
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #111118;
+      --bg3: #16161f;
+      --surface: rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --accent3: #38bdf8;
+      --text: #e8e8f0;
+      --text2: #9090a8;
+      --text3: #5a5a72;
+      --radius: 20px;
+      --radius-sm: 12px;
+      --nav-h: 68px;
+      --pad: 16px;
+      --pad-md: 24px;
+    }
+
+    /* ===== PAGES ===== */
+    .page {
+      display: none;
+      flex-direction: column;
+      min-height: calc(100vh - var(--nav-h));
+      padding-bottom: calc(var(--nav-h) + 16px);
+      overflow-x: hidden;
+    }
+    .page.active { display: flex; }
+
+    /* ===== BOTTOM NAV ===== */
+    #bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: stretch;
+      z-index: 1000;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      transition: color 0.2s, transform 0.15s;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+      padding: 4px 2px;
+    }
+    .nav-btn.active { color: var(--accent2); }
+    .nav-btn:active { transform: scale(0.92); }
+    .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.3px; white-space: nowrap; }
+    .nav-btn.active .nav-icon { filter: drop-shadow(0 0 6px var(--accent2)); }
+
+    /* ===== SCROLLABLE CONTENT ===== */
+    .scroll-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: var(--pad);
+    }
+
+    /* ===== SHARED COMPONENTS ===== */
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: clamp(22px, 6vw, 32px);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .section-sub {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .glass-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--pad);
+      transition: border-color 0.2s;
+    }
+    .glass-card:hover { border-color: rgba(108,99,255,0.3); }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary:active { transform: scale(0.96); opacity: 0.9; }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 10px 20px;
+      background: transparent;
+      color: var(--accent2);
+      border: 1px solid rgba(167,139,250,0.3);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-outline:active { transform: scale(0.96); background: rgba(108,99,255,0.1); }
+
+    /* ===== PAGE: HOME ===== */
+    #page-home .scroll-content {
+      display: flex;
+      flex-direction: column;
+      padding-top: 40px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent2);
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(32px, 10vw, 56px);
+      line-height: 1.05;
+      margin-bottom: 16px;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, var(--accent2), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-desc {
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 32px;
+      max-width: 420px;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+    }
+    .feature-icon { font-size: 24px; margin-bottom: 8px; }
+    .feature-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+    .feature-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+    /* ===== PAGE: TIM ===== */
+    #page-tim .scroll-content { padding-top: 24px; }
+    .team-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .team-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .team-card:hover { border-color: rgba(108,99,255,0.4); transform: translateY(-2px); }
+    .team-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: white;
+      flex-shrink: 0;
+    }
+    .team-info { flex: 1; }
+    .team-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .team-role {
+      font-size: 13px;
+      color: var(--accent2);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .team-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+    .team-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(108,99,255,0.1);
+      border: 1px solid rgba(108,99,255,0.2);
+      border-radius: 100px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--accent2);
+      font-weight: 500;
+    }
+
+    /* ===== PAGE: CHAT ===== */
+    #page-chat {
+      display: none;
+      flex-direction: column;
+      height: calc(100vh - var(--nav-h));
+      overflow: hidden;
+    }
+    #page-chat.active { display: flex; }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px var(--pad);
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,15,0.9);
+      backdrop-filter: blur(12px);
+      flex-shrink: 0;
+    }
+    .chat-header-left { display: flex; align-items: center; gap: 10px; }
+    .chat-header-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .chat-header-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+    .chat-header-sub { font-size: 11px; color: var(--text2); }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px var(--pad);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 12px;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .chat-empty-icon { font-size: 48px; opacity: 0.4; }
+    .chat-empty-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--text2); }
+    .chat-empty-sub { font-size: 13px; color: var(--text3); max-width: 260px; line-height: 1.5; }
+
+    .chat-bubble-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      animation: bubble-in 0.25s ease;
+    }
+    @keyframes bubble-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chat-bubble-wrap.user { flex-direction: row-reverse; }
+    .bubble-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .bubble-avatar.ai-av { background: linear-gradient(135deg, var(--accent), #8b5cf6); }
+    .bubble-avatar.user-av { background: linear-gradient(135deg, var(--accent3), #0ea5e9); }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      word-wrap: break-word;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .chat-bubble.ai {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      color: var(--text);
+    }
+    .chat-bubble.user {
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-bottom-right-radius: 4px;
+      color: white;
+    }
+    .bubble-time { font-size: 10px; color: var(--text3); margin-top: 4px; text-align: right; }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 14px 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+    }
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent2);
+      animation: typing 1.2s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .chat-input-area {
+      padding: 10px var(--pad);
+      background: rgba(10,10,15,0.95);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+    #chat-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      resize: none;
+      max-height: 120px;
+      min-height: 48px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    #chat-input:focus { border-color: rgba(108,99,255,0.5); }
+    #chat-input::placeholder { color: var(--text3); }
+    #send-btn {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: opacity 0.2s, transform 0.15s;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #send-btn:active { transform: scale(0.92); opacity: 0.8; }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ===== PAGE: RIWAYAT ===== */
+    #page-riwayat .scroll-content { padding-top: 24px; }
+    .riwayat-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .riwayat-empty-icon { font-size: 48px; opacity: 0.3; }
+    .riwayat-empty-text { color: var(--text2); font-size: 14px; }
+    .history-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .history-item:active { border-color: rgba(108,99,255,0.4); }
+    .history-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .history-item-title { font-weight: 600; font-size: 14px; flex: 1; word-break: break-word; }
+    .history-item-time { font-size: 11px; color: var(--text3); white-space: nowrap; flex-shrink: 0; }
+    .history-item-preview { font-size: 13px; color: var(--text2); line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .history-item-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .history-msg-count {
+      font-size: 11px;
+      color: var(--accent2);
+      background: rgba(108,99,255,0.1);
+      border-radius: 100px;
+      padding: 2px 8px;
+    }
+    .btn-del-history {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-del-history:active { color: #ef4444; background: rgba(239,68,68,0.1); }
+    .riwayat-header-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+    .btn-clear-all {
+      min-height: 36px;
+      padding: 8px 14px;
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: var(--radius-sm);
+      color: #ef4444;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ===== PAGE: TENTANG ===== */
+    #page-tentang .scroll-content { padding-top: 24px; }
+    .tentang-hero {
+      text-align: center;
+      padding: 32px 16px 24px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .tentang-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed, var(--accent3));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 16px;
+    }
+    .tentang-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+    .tentang-version { font-size: 12px; color: var(--text3); margin-bottom: 12px; }
+    .tentang-tagline { color: var(--text2); font-size: 14px; line-height: 1.6; max-width: 280px; margin: 0 auto; }
+
+    .info-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+    .info-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(108,99,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .info-text-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+    .info-text-sub { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+    .tech-stack {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--pad);
+      margin-bottom: 24px;
+    }
+    .tech-stack-title { font-weight: 600; font-size: 15px; margin-bottom: 14px; }
+    .tech-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tech-chip {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+    }
+    .tech-chip.accent { background: rgba(108,99,255,0.1); border-color: rgba(108,99,255,0.25); color: var(--accent2); }
+
+    /* ===== ERROR TOAST ===== */
+    #toast {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: #1a0a0a;
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: var(--radius-sm);
+      padding: 12px 20px;
+      color: #fca5a5;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 9999;
+      transition: transform 0.3s ease;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { background: #0a1a0f; border-color: rgba(34,197,94,0.4); color: #86efac; }
+
+    /* ===== TABLET RESPONSIVE ===== */
+    @media (min-width: 600px) {
+      :root { --pad: 24px; }
+      .team-grid { grid-template-columns: 1fr 1fr; }
+      .feature-grid { grid-template-columns: repeat(4, 1fr); }
+      .hero-title { font-size: 48px; }
+      .hero-stats { gap: 16px; }
+    }
+    @media (min-width: 768px) {
+      .team-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .hero-title { font-size: 56px; }
+    }
+
+    /* ===== HOVER MEDIA QUERY (desktop only) ===== */
+    @media (hover: hover) {
+      .btn-primary:hover { opacity: 0.85; }
+      .btn-outline:hover { background: rgba(108,99,255,0.1); border-color: rgba(108,99,255,0.5); }
+      .nav-btn:hover { color: var(--accent2); }
+      .team-card:hover { transform: translateY(-4px); }
+    }
+
+    /* ===== 320px SAFE ===== */
+    @media (max-width: 380px) {
+      .hero-title { font-size: 28px; }
+      .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .stat-num { font-size: 18px; }
+      .feature-grid { grid-template-columns: 1fr 1fr; }
+      .chat-bubble { max-width: 85%; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== PAGE: HOME ===== -->
+<main id="page-home" class="page active">
+  <div class="scroll-content">
+    <span class="hero-badge">✦ Powered by Groq · Llama 3 70B</span>
+    <h1 class="hero-title">Meet <span>Apollo</span> AI</h1>
+    <p class="hero-desc">Asisten kecerdasan buatan generasi baru. Cepat, cerdas, dan gratis — tanpa login, langsung pakai.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" id="btn-mulai-chat">💬 Mulai Chat</button>
+      <button class="btn-outline" id="btn-tentang-home">ℹ️ Tentang</button>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-card"><div class="stat-num">70B</div><div class="stat-label">Parameter</div></div>
+      <div class="stat-card"><div class="stat-num">∞</div><div class="stat-label">Pertanyaan</div></div>
+      <div class="stat-card"><div class="stat-num">0Rp</div><div class="stat-label">Gratis</div></div>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card"><div class="feature-icon">⚡</div><div class="feature-title">Super Cepat</div><div class="feature-desc">Respons instan via Groq Cloud</div></div>
+      <div class="feature-card"><div class="feature-icon">🔒</div><div class="feature-title">Privat</div><div class="feature-desc">Tanpa login, data tetap di device</div></div>
+      <div class="feature-card"><div class="feature-icon">🧠</div><div class="feature-title">Cerdas</div><div class="feature-desc">Llama 3 70B terbaru</div></div>
+      <div class="feature-card"><div class="feature-icon">📱</div><div class="feature-title">Mobile First</div><div class="feature-desc">Dioptimalkan untuk HP</div></div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== PAGE: TIM ===== -->
+<main id="page-tim" class="page">
+  <div class="scroll-content">
+    <span class="hero-badge">👥 Tim Apollo AI</span>
+    <h2 class="section-title">Tim Kami</h2>
+    <p class="section-sub">Orang-orang di balik Apollo AI — membangun masa depan AI untuk semua orang.</p>
+
+    <div class="team-grid">
+      <!-- iky -->
+      <div class="team-card">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="team-avatar">I</div>
+          <div class="team-info">
+            <div class="team-name">Iky</div>
+            <div class="team-role">Developer & AI Architect</div>
+          </div>
+        </div>
+        <p class="team-desc">Membangun fondasi teknis Apollo AI dari nol — arsitektur, integrasi API, dan pengalaman pengguna.</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <span class="team-badge">⚡ Lead Dev</span>
+          <a href="https://upd-portfolio.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-outline" style="font-size:13px; min-height:40px; padding:8px 14px;">🌐 Portfolio</a>
+        </div>
+      </div>
+
+      <!-- Lana -->
+      <div class="team-card">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="team-avatar" style="background: linear-gradient(135deg, #ec4899, #f43f5e);">L</div>
+          <div class="team-info">
+            <div class="team-name">Lana</div>
+            <div class="team-role">Upload & Deployment Engineer</div>
+          </div>
+        </div>
+        <p class="team-desc">Mengelola pipeline deployment dan infrastruktur agar Apollo AI dapat diakses kapan saja, di mana saja.</p>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span class="team-badge">🚀 DevOps</span>
+        </div>
+      </div>
+
+      <!-- uncoming -->
+      <div class="team-card">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="team-avatar" style="background: linear-gradient(135deg, #38bdf8, #0ea5e9);">U</div>
+          <div class="team-info">
+            <div class="team-name">Deii</div>
+            <div class="team-role">NLP & Prompt Engineer</div>
+          </div>
+        </div>
+        <p class="team-desc">Merancang sistem prompt dan fine-tuning respons agar Apollo AI terasa natural, cerdas, dan membantu.</p>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span class="team-badge" style="background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.25); color:var(--accent3);">🧠 AI/NLP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== PAGE: CHAT ===== -->
+<main id="page-chat" class="page">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="chat-header-dot"></div>
+      <div>
+        <div class="chat-header-title">Apollo AI</div>
+        <div class="chat-header-sub">Llama 3 70B · Groq Cloud</div>
+      </div>
+    </div>
+    <button class="btn-outline" id="new-chat-btn" style="font-size:12px; min-height:36px; padding:6px 14px;">✦ New Chat</button>
+  </div>
+
+  <div id="chat-messages">
+    <div class="chat-empty" id="chat-empty">
+      <div class="chat-empty-icon">✦</div>
+      <div class="chat-empty-title">Halo! Saya Apollo AI</div>
+      <div class="chat-empty-sub">Tanyakan apa saja — saya siap membantu dengan cepat dan tepat.</div>
+    </div>
+  </div>
+
+  <div class="chat-input-area">
+    <textarea id="chat-input" placeholder="Ketik pesan..." rows="1"></textarea>
+    <button id="send-btn" aria-label="Kirim">➤</button>
+  </div>
+</main>
+
+<!-- ===== PAGE: RIWAYAT ===== -->
+<main id="page-riwayat" class="page">
+  <div class="scroll-content">
+    <span class="hero-badge">📜 Riwayat Chat</span>
+    <h2 class="section-title">Riwayat</h2>
+    <p class="section-sub">Percakapan tersimpan otomatis di perangkat Anda.</p>
+    <div class="riwayat-header-actions" id="riwayat-actions" style="display:none;">
+      <button class="btn-clear-all" id="btn-clear-all">🗑️ Hapus Semua</button>
+    </div>
+    <div id="riwayat-list"></div>
+  </div>
+</main>
+
+<!-- ===== PAGE: TENTANG ===== -->
+<main id="page-tentang" class="page">
+  <div class="scroll-content">
+    <div class="tentang-hero">
+      <div class="tentang-logo">✦</div>
+      <div class="tentang-name">Apollo AI</div>
+      <div class="tentang-version">Versi 1.0.0 · Build 2025</div>
+      <p class="tentang-tagline">Asisten AI gratis, cepat, dan cerdas untuk semua orang — tanpa login, tanpa biaya.</p>
+    </div>
+
+    <div class="info-list">
+      <div class="info-item">
+        <div class="info-icon">🆓</div>
+        <div>
+          <div class="info-text-title">100% Gratis</div>
+          <div class="info-text-sub">Tidak ada biaya tersembunyi. Gunakan sepuasnya tanpa batasan.</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">🔑</div>
+        <div>
+          <div class="info-text-title">Tanpa Login</div>
+          <div class="info-text-sub">Langsung pakai — tidak perlu buat akun atau daftar email.</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">🛡️</div>
+        <div>
+          <div class="info-text-title">Privasi Terjaga</div>
+          <div class="info-text-sub">Riwayat chat tersimpan lokal di perangkat Anda saja.</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">⚡</div>
+        <div>
+          <div class="info-text-title">Respons Kilat</div>
+          <div class="info-text-sub">Didukung Groq Cloud — inference engine tercepat di dunia.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tech-stack">
+      <div class="tech-stack-title">🛠️ Teknologi yang Digunakan</div>
+      <div class="tech-chips">
+        <span class="tech-chip accent">Groq Cloud</span>
+        <span class="tech-chip accent">Llama 3 70B</span>
+        <span class="tech-chip">HTML5</span>
+        <span class="tech-chip">CSS3</span>
+        <span class="tech-chip">JavaScript</span>
+        <span class="tech-chip">localStorage</span>
+        <span class="tech-chip">Syne Font</span>
+        <span class="tech-chip">DM Sans</span>
+      </div>
+    </div>
+
+    <div class="glass-card" style="text-align:center; padding: 20px;">
+      <div style="font-size:24px; margin-bottom:8px;">✦</div>
+      <div style="font-weight:600; margin-bottom:4px;">Dibuat dengan ❤️ oleh Tim Apollo</div>
+      <div style="font-size:13px; color:var(--text2);">Iky · Lana · Deii</div>
+    </div>
+
+    <div style="text-align:center; margin-top:20px; padding: 16px;">
+      <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(108,99,255,0.08); border:1px solid rgba(108,99,255,0.2); border-radius:100px; padding:10px 20px;">
+        <span style="font-size:16px;">⚡</span>
+        <span style="font-size:13px; font-weight:600; color:var(--accent2);">Powered by Team Apollo AI</span>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:20px; padding: 18px; background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(56,189,248,0.08)); border: 1px solid rgba(108,99,255,0.2); border-radius: var(--radius);">
+      <div style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:6px;">Powered by</div>
+      <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:20px; background: linear-gradient(135deg, var(--accent2), var(--accent3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Team Apollo AI</div>
+      <div style="font-size:12px; color:var(--text3); margin-top:4px;">Building the future, one prompt at a time.</div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== BOTTOM NAVIGATION ===== -->
+<nav id="bottom-nav">
+  <button class="nav-btn active" data-page="home">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Home</span>
+  </button>
+  <button class="nav-btn" data-page="tim">
+    <span class="nav-icon">👥</span>
+    <span class="nav-label">Tim</span>
+  </button>
+  <button class="nav-btn" data-page="chat">
+    <span class="nav-icon">💬</span>
+    <span class="nav-label">Chat</span>
+  </button>
+  <button class="nav-btn" data-page="riwayat">
+    <span class="nav-icon">📜</span>
+    <span class="nav-label">Riwayat</span>
+  </button>
+  <button class="nav-btn" data-page="tentang">
+    <span class="nav-icon">ℹ️</span>
+    <span class="nav-label">Tentang</span>
+  </button>
+</nav>
+
+<!-- ===== TOAST ===== -->
+<div id="toast"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+
+    /* ===== CONFIG ===== */
+    const GROQ_ENDPOINT = 'https://riskypratama--b58661ea55d411f185aaee650bb23af1.web.val.run';
+    const MODEL = 'llama-3.3-70b-versatile';
+    const SYSTEM_PROMPT = `Kamu adalah Apollo AI — asisten kecerdasan buatan yang profesional, ramah, dan sangat membantu.
+Kamu dikembangkan oleh Tim Apollo menggunakan teknologi Groq Cloud dan Llama 3.3 70B.
+Tim Apollo terdiri dari 3 orang:
+1. Iky — Developer & AI Architect (pemimpin teknis)
+2. Lana — Upload & Deployment Engineer
+3. Deii — NLP & Prompt Engineer
+Jika ada yang bertanya siapa pembuat, kreator, atau tim di balik Apollo AI, sebutkan ketiga nama tersebut beserta perannya.
+Selalu jawab dalam bahasa yang sama dengan pengguna (Indonesia atau Inggris).
+Berikan jawaban yang jelas, akurat, dan mudah dipahami. Gunakan format yang rapi.
+Jika tidak tahu, katakan dengan jujur. Jangan buat-buat informasi.`;
+    const STORAGE_KEY = 'apollo_history';
+    const TIMEOUT_MS = 30000;
+
+    /* ===== STATE ===== */
+    let currentMessages = [];
+    let isLoading = false;
+    let currentPage = 'home';
+
+    /* ===== NAVIGATION ===== */
+    const pages = document.querySelectorAll('.page');
+    const navBtns = document.querySelectorAll('.nav-btn');
+
+    function showPage(name) {
+      currentPage = name;
+      pages.forEach(p => {
+        p.classList.remove('active');
+        if (p.id === 'page-' + name) p.classList.add('active');
+      });
+      navBtns.forEach(b => {
+        b.classList.remove('active');
+        if (b.dataset.page === name) b.classList.add('active');
+      });
+      if (name === 'riwayat') renderRiwayat();
+    }
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', function () {
+        showPage(this.dataset.page);
+      });
+    });
+
+    document.getElementById('btn-mulai-chat').addEventListener('click', () => showPage('chat'));
+    document.getElementById('btn-tentang-home').addEventListener('click', () => showPage('tentang'));
+
+    /* ===== TOAST ===== */
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = type === 'success' ? 'show success' : 'show';
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => { t.className = ''; }, 3500);
+    }
+
+    /* ===== CHAT ===== */
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const chatEmpty = document.getElementById('chat-empty');
+    const newChatBtn = document.getElementById('new-chat-btn');
+
+    function getTime() {
+      const d = new Date();
+      return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+
+    function scrollToBottom() {
+      setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 50);
+    }
+
+    function addBubble(role, text) {
+      if (chatEmpty) chatEmpty.style.display = 'none';
+      const wrap = document.createElement('div');
+      wrap.className = 'chat-bubble-wrap ' + (role === 'user' ? 'user' : 'ai');
+
+      const av = document.createElement('div');
+      av.className = 'bubble-avatar ' + (role === 'user' ? 'user-av' : 'ai-av');
+      av.textContent = role === 'user' ? '👤' : '✦';
+
+      const inner = document.createElement('div');
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble ' + role;
+      bubble.textContent = text;
+      const time = document.createElement('div');
+      time.className = 'bubble-time';
+      time.textContent = getTime();
+      inner.appendChild(bubble);
+      inner.appendChild(time);
+
+      wrap.appendChild(av);
+      wrap.appendChild(inner);
+      chatMessages.appendChild(wrap);
+      scrollToBottom();
+      return bubble;
+    }
+
+    function showTyping() {
+      const wrap = document.createElement('div');
+      wrap.className = 'chat-bubble-wrap ai';
+      wrap.id = 'typing-wrap';
+
+      const av = document.createElement('div');
+      av.className = 'bubble-avatar ai-av';
+      av.textContent = '✦';
+
+      const indicator = document.createElement('div');
+      indicator.className = 'typing-indicator';
+      indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+      wrap.appendChild(av);
+      wrap.appendChild(indicator);
+      chatMessages.appendChild(wrap);
+      scrollToBottom();
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typing-wrap');
+      if (el) el.remove();
+    }
+
+    async function sendMessage() {
+      if (isLoading) return;
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      isLoading = true;
+      sendBtn.disabled = true;
+
+      currentMessages.push({ role: 'user', content: text });
+      addBubble('user', text);
+      showTyping();
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+      try {
+        const resp = await fetch(GROQ_ENDPOINT, {
+          method: 'POST',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: [
+              { role: 'system', content: SYSTEM_PROMPT },
+              ...currentMessages
+            ],
+            max_tokens: 1024,
+            temperature: 0.7,
+            stream: false
+          })
+        });
+
+        clearTimeout(timeout);
+        removeTyping();
+
+        if (!resp.ok) {
+          let errMsg = 'API Error ' + resp.status;
+          try {
+            const errData = await resp.json();
+            if (errData.error && errData.error.message) errMsg = errData.error.message;
+          } catch (e) {}
+          throw new Error(errMsg);
+        }
+
+        const data = await resp.json();
+        const reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content
+          ? data.choices[0].message.content.trim()
+          : 'Maaf, saya tidak mendapat respons yang valid.';
+
+        currentMessages.push({ role: 'assistant', content: reply });
+        addBubble('ai', reply);
+        saveToHistory();
+
+      } catch (err) {
+        clearTimeout(timeout);
+        removeTyping();
+        let msg = 'Terjadi kesalahan. Coba lagi.';
+        if (err.name === 'AbortError') msg = '⏱ Waktu habis (30 detik). Coba lagi.';
+        else if (err.message) msg = err.message;
+        addBubble('ai', '❌ ' + msg);
+        showToast(msg, 'error');
+        // Remove last user message from history if failed
+        if (currentMessages.length && currentMessages[currentMessages.length-1].role === 'user') {
+          currentMessages.pop();
+        }
+      } finally {
+        isLoading = false;
+        sendBtn.disabled = false;
+        chatInput.focus();
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    chatInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    chatInput.addEventListener('input', function () {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    newChatBtn.addEventListener('click', function () {
+      if (currentMessages.length > 0) saveToHistory();
+      currentMessages = [];
+      chatMessages.innerHTML = '';
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'chat-empty';
+      emptyDiv.id = 'chat-empty';
+      emptyDiv.innerHTML = '<div class="chat-empty-icon">✦</div><div class="chat-empty-title">Halo! Saya Apollo AI</div><div class="chat-empty-sub">Tanyakan apa saja — saya siap membantu dengan cepat dan tepat.</div>';
+      chatMessages.appendChild(emptyDiv);
+      showToast('Chat baru dimulai ✓', 'success');
+    });
+
+    /* ===== HISTORY ===== */
+    function saveToHistory() {
+      if (currentMessages.length < 2) return;
+      if (typeof Storage === 'undefined') return;
+      try {
+        let history = [];
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) history = JSON.parse(raw);
+        const firstUser = currentMessages.find(m => m.role === 'user');
+        const title = firstUser ? firstUser.content.substring(0, 50) + (firstUser.content.length > 50 ? '...' : '') : 'Percakapan';
+        const firstAI = currentMessages.find(m => m.role === 'assistant');
+        const preview = firstAI ? firstAI.content.substring(0, 80) : '';
+        const id = Date.now().toString();
+        const existing = history.findIndex(h => h.id === id.substring(0, 10));
+        const entry = { id, title, preview, messages: currentMessages, date: new Date().toISOString(), count: currentMessages.length };
+        history.unshift(entry);
+        if (history.length > 50) history = history.slice(0, 50);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      } catch (e) { /* storage full or blocked */ }
+    }
+
+    function renderRiwayat() {
+      const list = document.getElementById('riwayat-list');
+      const actions = document.getElementById('riwayat-actions');
+      list.innerHTML = '';
+
+      if (typeof Storage === 'undefined') {
+        list.innerHTML = '<div class="riwayat-empty"><div class="riwayat-empty-icon">🚫</div><div class="riwayat-empty-text">Storage tidak tersedia di browser ini.</div></div>';
+        return;
+      }
+
+      let history = [];
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) history = JSON.parse(raw);
+      } catch (e) { history = []; }
+
+      if (history.length === 0) {
+        actions.style.display = 'none';
+        list.innerHTML = '<div class="riwayat-empty"><div class="riwayat-empty-icon">💬</div><div class="riwayat-empty-text">Belum ada riwayat chat.<br>Mulai chat untuk menyimpan percakapan.</div></div>';
+        return;
+      }
+
+      actions.style.display = 'flex';
+
+      history.forEach(function (item) {
+        const d = new Date(item.date);
+        const dateStr = d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML =
+          '<div class="history-item-top">' +
+            '<div class="history-item-title">' + escHtml(item.title) + '</div>' +
+            '<div class="history-item-time">' + dateStr + '</div>' +
+          '</div>' +
+          '<div class="history-item-preview">' + escHtml(item.preview) + '</div>' +
+          '<div class="history-item-footer">' +
+            '<span class="history-msg-count">💬 ' + item.count + ' pesan</span>' +
+            '<button class="btn-del-history" data-id="' + item.id + '" title="Hapus">🗑️</button>' +
+          '</div>';
+        el.querySelector('.btn-del-history').addEventListener('click', function (e) {
+          e.stopPropagation();
+          deleteHistory(item.id);
+        });
+        el.addEventListener('click', function () {
+          loadHistory(item);
+        });
+        list.appendChild(el);
+      });
+    }
+
+    function deleteHistory(id) {
+      if (typeof Storage === 'undefined') return;
+      try {
+        let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        history = history.filter(h => h.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        renderRiwayat();
+        showToast('Riwayat dihapus.', 'success');
+      } catch (e) {}
+    }
+
+    document.getElementById('btn-clear-all').addEventListener('click', function () {
+      if (typeof Storage === 'undefined') return;
+      if (!confirm('Hapus semua riwayat chat?')) return;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        renderRiwayat();
+        showToast('Semua riwayat dihapus.', 'success');
+      } catch (e) {}
+    });
+
+    function loadHistory(item) {
+      currentMessages = item.messages ? item.messages.slice() : [];
+      chatMessages.innerHTML = '';
+      currentMessages.forEach(function (m) {
+        if (m.role === 'user' || m.role === 'assistant') {
+          addBubble(m.role === 'user' ? 'user' : 'ai', m.content);
+        }
+      });
+      showPage('chat');
+      showToast('Riwayat dimuat ✓', 'success');
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ===== INIT ===== */
+    showPage('home');
+  });
+</script>
+</body>
+</html>
